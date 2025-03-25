@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - Leather Jacket Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Roboto Condensed", sans-serif;
+            padding-top: 56px;
+        }
+        
+        /* Navbar Styles */
+        .navbar {
+            background: linear-gradient(135deg, #2b4162 0%, #12100e 100%) !important;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: #ffd700 !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            color: #ffffff !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease;
+            padding: 8px 15px !important;
+            margin: 0 5px;
+            border-radius: 5px;
+        }
+
+        .nav-link:hover {
+            color: #ffd700 !important;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Product Card Styles */
+        .product-card {
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-img-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-img-wrapper img {
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .hover-overlay {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            right: 0;
+            background: rgba(43, 65, 98, 0.9);
+            padding: 1rem;
+            transition: bottom 0.3s ease;
+        }
+
+        .card:hover .hover-overlay {
+            bottom: 0;
+        }
+
+        .quick-add {
+            background: #ffd700;
+            border: none;
+            color: #2b4162;
+            font-weight: 600;
+        }
+
+        .quick-add:hover {
+            background: #f8c900;
+        }
+
+        .section-title {
+            color: #2b4162;
+            position: relative;
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: #ffd700;
+        }
+
+        /* Footer Styles */
+        .footer {
+            background: #2b4162;
+            color: white;
+            padding: 3rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: #ffffff;
+        }
+
+        .badge {
+            background-color: #ffd700 !important;
+            color: #2b4162 !important;
+        }
+
+        /* Category Styles */
+        .category-nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .category-btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn.active {
+            background: #2b4162;
+            color: #ffd700;
+            border-color: #2b4162;
+        }
+
+        .category-header {
+            background: #2b4162;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .subcategory-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home_page' %}">Leather Jacket Store</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home_page' %}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{% url 'shop_page' %}">Shop</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'about_us' %}">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'view_cart' %}">Cart <span class="badge">{{ cart_count }}</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login/Register</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <h1 class="text-center mb-5">Our Collections</h1>
+        
+        <!-- Category Navigation -->
+        <div class="category-nav mb-4">
+            <div class="d-flex justify-content-center flex-wrap gap-2">
+                <button onclick="showAllCategories()" class="btn category-btn {% if not active_category %}active{% endif %}">
+                    All Products
+                </button>
+                <button onclick="filterCategory('mens-jackets')" class="btn category-btn {% if active_category == 'mens-jackets' %}active{% endif %}">
+                    Men's Jackets
+                </button>
+                <button onclick="filterCategory('womens-jackets')" class="btn category-btn {% if active_category == 'womens-jackets' %}active{% endif %}">
+                    Women's Jackets
+                </button>
+                <button onclick="filterCategory('kids-jackets')" class="btn category-btn {% if active_category == 'kids-jackets' %}active{% endif %}">
+                    Kids' Jackets
+                </button>
+                <button onclick="filterCategory('shorts')" class="btn category-btn {% if active_category == 'shorts' %}active{% endif %}">
+                    Shorts
+                </button>
+                <button onclick="filterCategory('accessories')" class="btn category-btn {% if active_category == 'accessories' %}active{% endif %}">
+                    Accessories
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Sections -->
+        <div id="category-sections">
+            <!-- Men's Jackets Section -->
+            <div class="category-section mb-5" data-category="mens-jackets">
+                <div class="category-header">
+                    <h2 class="mb-0">Men's Leather Jackets</h2>
+                </div>
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {% for product in mens_jackets %}
+                        {% include 'Store/includes/product_card.html' with product=product %}
+                    {% empty %}
+                        <div class="col-12 text-center">
+                            <p>No products available in this category.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Women's Jackets Section -->
+            <div class="category-section mb-5" data-category="womens-jackets">
+                <div class="category-header">
+                    <h2 class="mb-0">Women's Leather Jackets</h2>
+                </div>
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {% for product in womens_jackets %}
+                        {% include 'Store/includes/product_card.html' with product=product %}
+                    {% empty %}
+                        <div class="col-12 text-center">
+                            <p>No products available in this category.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Kids Jackets Section -->
+            <div class="category-section mb-5" data-category="kids-jackets">
+                <div class="category-header">
+                    <h2 class="mb-0">Kids' Leather Jackets</h2>
+                </div>
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {% for product in kids_jackets %}
+                        {% include 'Store/includes/product_card.html' with product=product %}
+                    {% empty %}
+                        <div class="col-12 text-center">
+                            <p>No products available in this category.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Shorts Section -->
+            <div class="category-section mb-5" data-category="shorts">
+                <div class="category-header">
+                    <h2 class="mb-0">Leather Shorts</h2>
+                </div>
+                <div class="subcategory-nav mb-3">
+                    <div class="btn-group" role="group">
+                        <button onclick="filterSubcategory('shorts', 'mens')" class="btn btn-sm btn-outline-secondary">Men's Shorts</button>
+                        <button onclick="filterSubcategory('shorts', 'womens')" class="btn btn-sm btn-outline-secondary">Women's Shorts</button>
+                        <button onclick="filterSubcategory('shorts', 'kids')" class="btn btn-sm btn-outline-secondary">Kids' Shorts</button>
+                    </div>
+                </div>
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {% for product in shorts %}
+                        {% include 'Store/includes/product_card.html' with product=product %}
+                    {% empty %}
+                        <div class="col-12 text-center">
+                            <p>No products available in this category.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Accessories Section -->
+            <div class="category-section mb-5" data-category="accessories">
+                <div class="category-header">
+                    <h2 class="mb-0">Leather Accessories</h2>
+                </div>
+                <div class="subcategory-nav mb-3">
+                    <div class="btn-group" role="group">
+                        <button onclick="filterSubcategory('accessories', 'watch-straps')" class="btn btn-sm btn-outline-secondary">Watch Straps</button>
+                        <button onclick="filterSubcategory('accessories', 'mens-purses')" class="btn btn-sm btn-outline-secondary">Men's Purses</button>
+                        <button onclick="filterSubcategory('accessories', 'womens-purses')" class="btn btn-sm btn-outline-secondary">Women's Purses</button>
+                    </div>
+                </div>
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {% for product in accessories %}
+                        {% include 'Store/includes/product_card.html' with product=product %}
+                    {% empty %}
+                        <div class="col-12 text-center">
+                            <p>No products available in this category.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>About Us</h5>
+                    <p>Premium quality leather products crafted with precision and style. Your perfect leather companion is just a click away.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home_page' %}">Home</a></li>
+                        <li><a href="{% url 'shop_page' %}">Shop</a></li>
+                        <li><a href="{% url 'about_us' %}">About Us</a></li>
+                        <li><a href="{% url 'view_cart' %}">Cart</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-envelope"></i> info@leatherjacketstore.com</li>
+                        <li><i class="bi bi-phone"></i> +1 234 567 890</li>
+                        <li><i class="bi bi-geo-alt"></i> 123 Leather Street, Fashion City</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2024 Leather Jacket Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function addToCart(productId) {
+            // Get CSRF token from cookie
+            const csrftoken = document.cookie.split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+
+            fetch(`/add-to-cart/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update cart count
+                    const badge = document.querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = data.cart_count;
+                    }
+                    alert('Product added to cart successfully!');
+                } else {
+                    alert(data.message || 'Error adding product to cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error adding product to cart. Please try again.');
+            });
+        }
+
+        function showAllCategories() {
+            document.querySelectorAll('.category-section').forEach(section => {
+                section.style.display = 'block';
+            });
+            updateActiveButton(null);
+        }
+
+        function filterCategory(category) {
+            document.querySelectorAll('.category-section').forEach(section => {
+                if (section.getAttribute('data-category') === category) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+            updateActiveButton(category);
+        }
+
+        function filterSubcategory(category, subcategory) {
+            const products = document.querySelectorAll(`[data-category="${category}"] .product-card`);
+            products.forEach(product => {
+                if (product.getAttribute('data-subcategory') === subcategory) {
+                    product.style.display = 'block';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+        }
+
+        function updateActiveButton(activeCategory) {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (activeCategory === null) {
+                document.querySelector('.category-btn:first-child').classList.add('active');
+            } else {
+                document.querySelector(`[onclick*="${activeCategory}"]`).classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

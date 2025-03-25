@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Leather Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        .cart-item:last-child {
+            border-bottom: none !important;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .page-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .cart-wrapper {
+            min-height: calc(100vh - 400px);
+        }
+        .footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .btn-primary {
+            background-color: #2c3e50;
+            border-color: #2c3e50;
+        }
+        .btn-primary:hover {
+            background-color: #34495e;
+            border-color: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home_page' %}">
+                <i class="bi bi-shop"></i> Leather Store
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home_page' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'shop_page' %}">Shop</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'view_cart' %}">
+                            Cart <span class="badge bg-primary">{{ cart_count }}</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="display-4">Shopping Cart</h1>
+            <p class="lead">Review your items and checkout</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="cart-wrapper">
+        <div class="container my-5">
+            {% csrf_token %}
+            {% if cart_items %}
+            <div class="row">
+                <!-- Cart Items -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            {% for item in cart_items %}
+                            <div class="cart-item mb-3 p-3 border-bottom" id="cart-item-{{ item.id }}">
+                                <div class="row align-items-center">
+                                    <!-- Product Image -->
+                                    <div class="col-md-2">
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid rounded">
+                                    </div>
+                                    <!-- Product Details -->
+                                    <div class="col-md-4">
+                                        <h5 class="mb-1">{{ item.product.name }}</h5>
+                                        <p class="text-muted mb-0">Price: ${{ item.price }}</p>
+                                    </div>
+                                    <!-- Quantity Controls -->
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center quantity-controls">
+                                            <button class="btn btn-outline-secondary btn-sm" 
+                                                    onclick="updateCart({{ item.id }}, 'decrease')">
+                                                <i class="bi bi-dash"></i>
+                                            </button>
+                                            <span class="mx-2 quantity">{{ item.quantity }}</span>
+                                            <button class="btn btn-outline-secondary btn-sm"
+                                                    onclick="updateCart({{ item.id }}, 'increase')">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Total Price -->
+                                    <div class="col-md-2">
+                                        <span class="item-total">${{ item.get_total_price }}</span>
+                                    </div>
+                                    <!-- Remove Button -->
+                                    <div class="col-md-1">
+                                        <button class="btn btn-danger btn-sm"
+                                                onclick="updateCart({{ item.id }}, 'remove')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Order Summary</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal</span>
+                                <span id="subtotal">${{ subtotal|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping Fee</span>
+                                <span id="shipping-fee">${{ shipping_fee|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Tax (10%)</span>
+                                <span id="tax-amount">${{ tax_amount|floatformat:2 }}</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-4">
+                                <strong>Total</strong>
+                                <strong id="total">${{ total|floatformat:2 }}</strong>
+                            </div>
+                            <a href="{% url 'checkout' %}" class="btn btn-primary w-100">Proceed to Checkout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-cart-x" style="font-size: 4rem; color: #2c3e50;"></i>
+                <h3 class="mt-3">Your cart is empty</h3>
+                <p class="text-muted">Looks like you haven't added any items to your cart yet.</p>
+                <a href="{% url 'shop_page' %}" class="btn btn-primary mt-3">Continue Shopping</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>About Us</h5>
+                    <p>Your trusted destination for quality leather products.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home_page' %}" class="text-white">Home</a></li>
+                        <li><a href="{% url 'shop_page' %}" class="text-white">Shop</a></li>
+                        <li><a href="{% url 'about_us' %}" class="text-white">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact</h5>
+                    <p>
+                        <i class="bi bi-envelope"></i> support@leatherstore.com<br>
+                        <i class="bi bi-telephone"></i> +1 234 567 890
+                    </p>
+                </div>
+            </div>
+            <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2024 Leather Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+    <script>
+        let isUpdating = false;  // Add this flag at the top of your scripts
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function updateCart(itemId, action) {
+            if (isUpdating) return;  // Prevent multiple simultaneous updates
+            isUpdating = true;
+
+            const csrftoken = getCookie('csrftoken');
+            
+            fetch(`/update-cart/${itemId}/${action}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update cart count in navbar if it exists
+                    const cartBadge = document.querySelector('.nav-link .badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart_count;
+                    }
+                    
+                    if (action === 'remove') {
+                        const cartItem = document.getElementById(`cart-item-${itemId}`);
+                        if (cartItem) {
+                            cartItem.remove();
+                        }
+                    } else {
+                        const itemContainer = document.getElementById(`cart-item-${itemId}`);
+                        if (itemContainer) {
+                            const quantityElement = itemContainer.querySelector('.quantity');
+                            const totalElement = itemContainer.querySelector('.item-total');
+                            if (quantityElement) quantityElement.textContent = data.quantity;
+                            if (totalElement) totalElement.textContent = `$${data.item_total.toFixed(2)}`;
+                        }
+                    }
+                    
+                    // Update summary
+                    document.getElementById('subtotal').textContent = `$${data.subtotal.toFixed(2)}`;
+                    document.getElementById('shipping-fee').textContent = `$${data.shipping_fee.toFixed(2)}`;
+                    document.getElementById('tax-amount').textContent = `$${data.tax_amount.toFixed(2)}`;
+                    document.getElementById('total').textContent = `$${data.total.toFixed(2)}`;
+                    
+                    // Show empty cart message if no items left
+                    if (data.cart_count === 0) {
+                        location.reload();
+                    }
+                } else {
+                    console.error('Server returned error:', data.message);
+                    alert(data.message || 'Error updating cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating cart. Please try again.');
+            })
+            .finally(() => {
+                // Reset the flag after operation completes
+                setTimeout(() => {
+                    isUpdating = false;
+                }, 500);  // Add a small delay before allowing next update
+            });
+        }
+    </script>
+</body>
+</html>

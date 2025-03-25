@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Admin Dashboard</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Admin Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone_number }}</td>
+                <td>{{ user.is_admin|yesno:"Admin,User" }}</td>
+                <td>
+                    <a href="{% url 'edit_user' user.id %}" class="btn btn-sm btn-primary">Edit</a>
+                    <a href="{% url 'toggle_admin_role' user.id %}" class="btn btn-sm btn-warning">
+                        {% if user.is_admin %}Remove Admin{% else %}Make Admin{% endif %}
+                    </a>
+                    <a href="{% url 'reset_password' user.id %}" class="btn btn-sm btn-info">Reset Password</a>
+                    <a href="{% url 'delete_user' user.id %}" class="btn btn-sm btn-danger" 
+                       onclick="return confirm('Are you sure?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

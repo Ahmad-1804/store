@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Premium Leather Jackets and Accessories">
+    <title>Leather Jacket Store</title>
+    
+    <!-- CSS Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    
+    <style>
+        /* Core Styles */
+        :root {
+            --primary-color: #2b4162;
+            --secondary-color: #ffd700;
+            --text-color: #333;
+            --light-bg: #f8f9fa;
+            --dark-bg: #12100e;
+        }
+
+        body {
+            font-family: "Roboto Condensed", sans-serif;
+            color: var(--text-color);
+        }
+
+        .hero {
+            position: relative;
+            height: 100vh;
+        }
+        
+        .carousel {
+            height: 100%;
+        }
+
+        .carousel-inner {
+            height: 100%;
+        }
+
+        .carousel-item {
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .carousel-item img {
+            object-fit: cover;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Overlay */
+        .carousel-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+        
+        .hero-content {
+            text-align: center;
+            color: #fff; /* White text color */
+        }
+        
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        .hero-content p {
+            font-size: 1.5rem;
+        }
+        .hero h1, .hero p {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .product-card img {
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        .categories ul {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            list-style-type: none;
+            padding: 0;
+        }
+        .categories ul li a {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+        }
+        .categories ul li a:hover, .categories ul li a.text-primary {
+            color: #007bff;
+            text-decoration: underline;
+        }
+        
+        /* Updated Sidebar Styles */
+        .sidebar {
+            background: linear-gradient(135deg, #2b4162 0%, #12100e 100%);
+            padding: 20px;
+            height: calc(100vh - 56px); /* Adjust to navbar height */
+            position: fixed;
+            top: 56px; /* Align with navbar */
+            left: 0; /* Always visible */
+            width: 250px;
+            z-index: 1019;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Remove toggle button styles */
+        .sidebar-toggle {
+            display: none;
+        }
+
+        /* Adjust main content */
+        .main-content {
+            margin-left: 250px; /* Always shifted */
+        }
+
+        /* Remove sidebar close button */
+        .sidebar-close {
+            display: none;
+        }
+
+        .sidebar h5 {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ffd700;
+        }
+
+        .sidebar-categories .dropdown-btn {
+            width: 100%;
+            text-align: left;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-categories .dropdown-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .dropdown-container {
+            display: none;
+            padding-left: 15px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease-out;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        .dropdown-container.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .dropdown-container.active {
+            max-height: 500px; /* Adjust this value based on your content */
+            transition: max-height 0.3s ease-in;
+        }
+        .sidebar-categories .sub-item {
+            padding: 10px 15px;
+            display: block;
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border-left: 2px solid transparent;
+        }
+        .sidebar-categories .sub-item:hover {
+            color: #ffd700;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left: 2px solid #ffd700;
+            transform: translateX(5px);
+        }
+        /* Animation for dropdown */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Active state styling */
+        .sidebar-categories .dropdown-btn.active {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+        }
+        /* Icon styling */
+        .sidebar-categories .dropdown-btn i {
+            transition: transform 0.3s ease;
+        }
+        .sidebar-categories .dropdown-btn.active i {
+            transform: rotate(180deg);
+        }
+        /* Optimize carousel transitions */
+        .carousel-item {
+            transition: transform .3s ease-in-out !important;
+        }
+        /* Preload images */
+        .carousel-inner img {
+            will-change: transform;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+        /* Updated carousel styles for better performance */
+        .carousel-item {
+            transition: transform .6s ease-in-out !important;
+        }
+        .carousel-item img {
+            width: 100%;
+            height: 100vh;
+            object-fit: cover;
+            object-position: center;
+        }
+        /* Smoother transitions */
+        .carousel-fade .carousel-item {
+            opacity: 0;
+            transition-duration: .6s;
+            transition-property: opacity;
+        }
+        .carousel-fade .carousel-item.active,
+        .carousel-fade .carousel-item-next.carousel-item-start,
+        .carousel-fade .carousel-item-prev.carousel-item-end {
+            opacity: 1;
+        }
+        .carousel-fade .active.carousel-item-start,
+        .carousel-fade .active.carousel-item-end {
+            opacity: 0;
+        }
+        /* Search and Filter Styles */
+        .search-filter-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem 0;
+            border-radius: 15px;
+            margin: 2rem auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .search-box {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .search-box input {
+            padding-left: 45px;
+            height: 50px;
+            border-radius: 25px;
+            border: 2px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        .search-box input:focus {
+            border-color: #2b4162;
+            box-shadow: 0 0 0 0.2rem rgba(43, 65, 98, 0.25);
+        }
+        .search-box .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        .search-box .search-button {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            height: 40px;
+            border-radius: 20px;
+            padding: 0 20px;
+            background: #2b4162;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .search-box .search-button:hover {
+            background: #1a2a3f;
+            transform: translateY(-1px);
+        }
+        .filter-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-button {
+            padding: 8px 20px;
+            border: 2px solid #2b4162;
+            border-radius: 20px;
+            background: transparent;
+            color: #2b4162;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .filter-button:hover, .filter-button.active {
+            background: #2b4162;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .price-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .price-input {
+            width: 100px;
+            height: 35px;
+            border-radius: 17.5px;
+            border: 1px solid #ddd;
+            padding: 0 15px;
+            text-align: center;
+        }
+        /* Add these styles at the beginning of your style section */
+        .navbar {
+            background: linear-gradient(135deg, #2b4162 0%, #12100e 100%) !important;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            color: #ffd700 !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nav-link {
+            color: #ffffff !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease;
+            padding: 8px 15px !important;
+            margin: 0 5px;
+            border-radius: 5px;
+        }
+        .nav-link:hover {
+            color: #ffd700 !important;
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        .badge {
+            background-color: #ffd700 !important;
+            color: #2b4162 !important;
+        }
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        .category-section {
+            padding: 2rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .section-title {
+            font-size: 2rem;
+            color: #2b4162;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: #ffd700;
+        }
+        .card-img-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+        .card-img-wrapper img {
+            transition: transform 0.2s ease;
+        }
+        .hover-overlay {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            right: 0;
+            background: rgba(43, 65, 98, 0.9);
+            padding: 1rem;
+            transition: bottom 0.3s ease;
+            text-align: center;
+        }
+        .card:hover .hover-overlay {
+            bottom: 0;
+        }
+        .card:hover .card-img-wrapper img {
+            transform: scale(1.05);
+        }
+        .quick-add {
+            background: #ffd700;
+            border: none;
+            color: #2b4162;
+            font-weight: 600;
+        }
+        .quick-add:hover {
+            background: #f8c900;
+            color: #2b4162;
+        }
+        .price {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2b4162;
+        }
+        .product-card {
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+        .card-img-wrapper img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .text-decoration-line-through {
+            text-decoration: line-through!important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+<nav class="navbar navbar-expand-lg position-fixed w-100" style="z-index: 1030; top: 0;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Leather Jacket Store</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'home_page' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'shop_page' %}">Shop</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'about_us' %}">About Us</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'view_cart' %}">Cart <span class="badge">{{ cart_count }}</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login/Register</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <h5 class="mb-3">Categories</h5>
+        <ul class="sidebar-categories">
+            <!-- Jackets Dropdown -->
+            <li>
+                <button class="dropdown-btn">
+                    Jackets
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="dropdown-container">
+                    <a href="{% url 'category_products' 'men-jackets' %}" class="sub-item">Men Jackets</a>
+                    <a href="{% url 'category_products' 'women-jackets' %}" class="sub-item">Women Jackets</a>
+                    <a href="{% url 'category_products' 'kids-jackets' %}" class="sub-item">Kids Jackets</a>
+                </div>
+            </li>
+            <!-- Purses Dropdown -->
+            <li>
+                <button class="dropdown-btn">
+                    Purses
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="dropdown-container">
+                    <a href="{% url 'category_products' 'ladies-leather-purse' %}" class="sub-item">Ladies Leather Purse</a>
+                    <a href="{% url 'category_products' 'men-purse' %}" class="sub-item">Men Purse</a>
+                </div>
+            </li>
+            <!-- Shorts Dropdown -->
+            <li>
+                <button class="dropdown-btn">
+                    Shorts
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="dropdown-container">
+                    <a href="{% url 'category_products' 'mens-leather-shorts' %}" class="sub-item">Mens Leather Shorts</a>
+                    <a href="{% url 'category_products' 'ladies-leather-shorts' %}" class="sub-item">Ladies Leather Shorts</a>
+                </div>
+            </li>
+            <!-- Caps Dropdown -->
+            <li>
+                <button class="dropdown-btn">
+                    Caps
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="dropdown-container">
+                    <a href="{% url 'category_products' 'mens-leather-caps' %}" class="sub-item">Mens Leather Caps</a>
+                </div>
+            </li>
+            <!-- Watch Straps Dropdown -->
+            <li>
+                <button class="dropdown-btn">
+                    Watch Straps
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="dropdown-container">
+                    <a href="{% url 'category_products' 'mens-watch-straps' %}" class="sub-item">Mens Leather Straps</a>
+                    <a href="{% url 'category_products' 'women-watch-straps' %}" class="sub-item">Women Leather Straps</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <!-- Wrap the main content -->
+    <div class="main-content">
+        <!-- Hero Section with Carousel -->
+        <section class="hero">
+            <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=1470&auto=format&fit=crop" 
+                             class="d-block w-100" alt="Premium Leather Jackets">
+                        <div class="carousel-overlay">
+                            <div class="hero-content">
+                                <h1>Premium Leather Jackets</h1>
+                                <p>Discover our exclusive collection</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=1480&auto=format&fit=crop" 
+                             class="d-block w-100" alt="Men's Collection">
+                        <div class="carousel-overlay">
+                            <div class="hero-content">
+                                <h1>Men's Collection</h1>
+                                <p>Stylish and durable leather jackets for men</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?q=80&w=1492&auto=format&fit=crop" 
+                             class="d-block w-100" alt="Women's Collection">
+                        <div class="carousel-overlay">
+                            <div class="hero-content">
+                                <h1>Women's Collection</h1>
+                                <p>Elegant and fashionable designs for women</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </section>
+    <!-- Product Search -->
+    <div class="search-filter-section container">
+        <form method="get" action="" class="mb-4">
+            <div class="search-box">
+                <i class="bi bi-search search-icon"></i>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="Search for leather products..." 
+                    name="search" 
+                    value="{{ search_query }}"
+                >
+                <button type="submit" class="btn btn-primary search-button">
+                    Search
+                </button>
+            </div>
+            <div class="filter-options">
+                <a href="?category=jackets" class="filter-button {% if category == 'jackets' %}active{% endif %}">Jackets</a>
+                <a href="?category=purses" class="filter-button {% if category == 'purses' %}active{% endif %}">Purses</a>
+                <a href="?category=shorts" class="filter-button {% if category == 'shorts' %}active{% endif %}">Shorts</a>
+                <a href="?category=caps" class="filter-button {% if category == 'caps' %}active{% endif %}">Caps</a>
+                <a href="?category=watch-straps" class="filter-button {% if category == 'watch-straps' %}active{% endif %}">Watch Straps</a>
+            </div>
+            <div class="price-range">
+                <input type="number" class="price-input" name="min_price" placeholder="Min $" value="{{ min_price }}">
+                <span>to</span>
+                <input type="number" class="price-input" name="max_price" placeholder="Max $" value="{{ max_price }}">
+                <button type="submit" class="btn btn-outline-primary filter-button">Apply Filter</button>
+            </div>
+        </form>
+    </div>
+    <!-- Products by Category Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Men's Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in men_products %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in this category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Women's Categories Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Women's Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in women_products %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in this category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Kids Categories Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Kids Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in kids_products %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in this category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Men Shorts Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Men's Shorts Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in men_shorts %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in Men's Shorts category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Women Shorts Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Women's Shorts Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in women_shorts %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in Women's Shorts category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Men Caps Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Men's Caps Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in men_caps %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in Men's Caps category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Men Purse Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Men's Purse Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in men_purse %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in Men's Purse category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Women Purse Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Women's Purse Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in women_purse %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in Women's Purse category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Watch Straps Section -->
+    <div class="category-section mb-5">
+        <h2 class="section-title mb-4">Watch Straps Collection</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for product in watch_straps %}
+                <div class="col">
+                    <div class="card product-card h-100 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                </a>
+                                {% if product.discount_price %}
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        -{{ product.get_discount_percentage|floatformat:"0" }}%
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <img src="{% static 'images/no-image.jpg' %}" class="card-img-top" alt="No image available" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                            <div class="hover-overlay">
+                                <button
+                                    class="btn btn-primary quick-add"
+                                    data-url="{% url 'add_to_cart' product.id %}"
+                                    {% if not user.is_authenticated %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#loginModal"
+                                    {% endif %}
+                                >Quick Add</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="price text-danger">${{ product.discount_price }}</span>
+                                        <small class="text-muted text-decoration-line-through ms-2">${{ product.price }}</small>
+                                    {% else %}
+                                        <span class="price">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No products available in Watch Straps category.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<!-- Footer -->
+<footer class="bg-dark text-white mt-5">
+    <div class="container py-4">
+        <div class="row">
+            <!-- First Column: Logo and Description -->
+            <div class="col-md-4 mb-3">
+                <img src="{% static 'images/logo.jpeg' %}" alt="Company Logo" class="img-fluid mb-2">
+                <p>Welcome to the Leather Jacket Store! We offer premium quality leather jackets crafted with precision and style. Your perfect jacket is just a click away.</p>
+            </div>
+            <!-- Second Column: Navigation Links -->
+            <div class="col-md-4 mb-3">
+                <h5>Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'home_page' %}" class="text-white text-decoration-none">Home</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">Shop</a></li>
+                    <li><a href="{% url 'about_us' %}" class="text-white text-decoration-none">About Us</a></li>
+                    <li><a href="{% url 'view_cart' %}" class="text-white text-decoration-none">Cart</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">Contact Us</a></li>
+                </ul>
+            </div>
+            <!-- Third Column: Social Links -->
+            <div class="col-md-4 mb-3">
+                <h5>Follow Us</h5>
+                <ul class="list-unstyled d-flex">
+                    <li><a href="https://facebook.com" class="text-white text-decoration-none me-3" target="_blank"><i class="bi bi-facebook"></i> Facebook</a></li>
+                    <li><a href="https://twitter.com" class="text-white text-decoration-none me-3" target="_blank"><i class="bi bi-twitter"></i> Twitter</a></li>
+                    <li><a href="https://instagram.com" class="text-white text-decoration-none" target="_blank"><i class="bi bi-instagram"></i> Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- Copyright Section -->
+        <div class="text-center mt-4">
+            <p class="mb-0">&copy; 2025 Leather Jacket Store. All rights reserved.</p>
+            <p>Crafted with care and precision.</p>
+        </div>
+    </div>
+</footer>
+<!-- Required JavaScript Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Sidebar Dropdown Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeSidebar();
+    });
+
+    function initializeSidebar() {
+        const dropdownButtons = document.querySelectorAll('.dropdown-btn');
+        
+        // Hide all containers initially
+        document.querySelectorAll('.dropdown-container').forEach(container => {
+            container.style.display = 'none';
+        });
+
+        // Add click handlers to dropdown buttons
+        dropdownButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleDropdown(this);
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.sidebar-categories')) {
+                closeAllDropdowns();
+            }
+        });
+    }
+
+    function toggleDropdown(button) {
+        const dropdownContent = button.nextElementSibling;
+        const isOpen = dropdownContent.style.display === 'block';
+
+        // Close all other dropdowns
+        closeAllDropdowns();
+
+        // Toggle current dropdown
+        if (!isOpen) {
+            dropdownContent.style.display = 'block';
+            button.classList.add('active');
+        }
+    }
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('.dropdown-container').forEach(container => {
+            container.style.display = 'none';
+        });
+        document.querySelectorAll('.dropdown-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+    }
+
+    function initializeQuickAdd() {
+        // First, remove any existing event listeners
+        document.querySelectorAll('.quick-add').forEach(button => {
+            // Clone and replace the button to remove old event listeners
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+        });
+
+        // Add new event listeners
+        document.querySelectorAll('.quick-add').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Disable the button temporarily to prevent double clicks
+                this.disabled = true;
+                
+                // Check if user is authenticated
+                if (this.hasAttribute('data-bs-toggle')) {
+                    this.disabled = false;
+                    return;
+                }
+                
+                const url = this.getAttribute('data-url');
+                const csrfToken = getCookie('csrftoken');
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update cart count in navbar
+                        const cartBadge = document.querySelector('.nav-link .badge');
+                        if (cartBadge) {
+                            cartBadge.textContent = data.cart_count;
+                        }
+
+                        // Show success message
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Product added to cart',
+                            icon: 'success',
+                            showCancelButton: true,
+                            confirmButtonText: 'View Cart',
+                            cancelButtonText: 'Continue Shopping'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = data.cart_url;
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: data.message || 'Failed to add product to cart',
+                            icon: 'error'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred. Please try again.',
+                        icon: 'error'
+                    });
+                })
+                .finally(() => {
+                    // Re-enable the button after the operation is complete
+                    this.disabled = false;
+                });
+            });
+        });
+    }
+
+    // CSRF token helper function
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Initialize the quick-add functionality when the document loads
+    document.addEventListener('DOMContentLoaded', initializeQuickAdd);
+</script>
+</body>
+</html>
