@@ -20,7 +20,27 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.urls import reverse
+import hashlib
+import datetime
+import requests
 
+
+
+
+
+MERCHANT_ID = 'MC147369'
+PASSWORD = '5u040f9g2x'
+INTEGRITY_SALT = '432tz9622y'
+RETURN_URL = 'https://yourdomain.com/payment/callback/'
+JAZZCASH_BASE_URL = 'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform/'
+RETURN_URL = 'https://yourdomain.com/payment/callback/'
+JAZZCASH_BASE_URL = 'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform/'
+
+# Function to generate JazzCash secure hash
+def generate_secure_hash(data_dict):
+    sorted_data = "&".join(f"{key}={value}" for key, value in sorted(data_dict.items()))
+    hash_string = INTEGRITY_SALT + "&" + sorted_data
+    return hashlib.sha256(hash_string.encode('utf-8')).hexdigest()
 
 
 # Add this helper function at the top of the file
@@ -107,8 +127,18 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-
+        print(f"trying to login: {username} and this is a {password}")
+        
+        try:
+            user = User.objects.get(username=username)  # Find user by email
+            username = user.username  # Get username for authentication
+        except User.DoesNotExist:
+            return render(request, 'store/login.html', {'error': 'Invalid credentials'})
+        
+        
         user = authenticate(request, username=username, password=password)
+        print(f"Authenticated User: {user}")    
+        
         if user:
             if hasattr(user, 'profile') and user.profile.is_verified:
                 login(request, user)
@@ -240,11 +270,6 @@ def add_to_cart(request, product_id):
     }, status=405)
 
 
-
-def payment_page(request):
-    return render(request, 'Store/payment.html')
-
-
 def product_list(request):
     return render(request, 'Store/product_list.html') 
 
@@ -253,73 +278,73 @@ def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     return render(request, 'Store/product_details.html', {'product': product})
 
-def checkout(request):
-    if request.method == 'POST':
-        try:
-            # Get cart items and verify cart is not empty
-            cart_items = CartItem.objects.filter(user=request.user)
-            if not cart_items.exists():
-                messages.error(request, 'Your cart is empty')
-                return redirect('view_cart')
+# def checkout(request):
+#     if request.method == 'POST':
+#         try:
+#             # Get cart items and verify cart is not empty
+#             cart_items = CartItem.objects.filter(user=request.user)
+#             if not cart_items.exists():
+#                 messages.error(request, 'Your cart is empty')
+#                 return redirect('view_cart')
 
-            # Calculate totals
-            subtotal = sum(item.get_total_price() for item in cart_items)
-            shipping_fee = Decimal('5.00')
-            tax_amount = subtotal * Decimal('0.10')
-            total_amount = subtotal + shipping_fee + tax_amount
+#             # Calculate totals
+#             subtotal = sum(item.get_total_price() for item in cart_items)
+#             shipping_fee = Decimal('5.00')
+#             tax_amount = subtotal * Decimal('0.10')
+#             total_amount = subtotal + shipping_fee + tax_amount
 
-            # Create the order with all required fields
-            order = Order.objects.create(
-                user=request.user,
-                full_name=request.POST.get('full_name'),
-                email=request.POST.get('email'),
-                address=request.POST.get('address'),
-                country=request.POST.get('country'),
-                total_amount=total_amount,
-                shipping_fee=shipping_fee,
-                tax_amount=tax_amount,
-                subtotal=subtotal,
-                status='pending'
-            )
+#             # Create the order with all required fields
+#             order = Order.objects.create(
+#                 user=request.user,
+#                 full_name=request.POST.get('full_name'),
+#                 email=request.POST.get('email'),
+#                 address=request.POST.get('address'),
+#                 country=request.POST.get('country'),
+#                 total_amount=total_amount,
+#                 shipping_fee=shipping_fee,
+#                 tax_amount=tax_amount,
+#                 subtotal=subtotal,
+#                 status='pending'
+#             )
 
-            # Create order items
-            for cart_item in cart_items:
-                OrderItem.objects.create(
-                    order=order,
-                    product=cart_item.product,
-                    quantity=cart_item.quantity,
-                    price=cart_item.price,
-                    total=cart_item.get_total_price()
-                )
+#             # Create order items
+#             for cart_item in cart_items:
+#                 OrderItem.objects.create(
+#                     order=order,
+#                     product=cart_item.product,
+#                     quantity=cart_item.quantity,
+#                     price=cart_item.price,
+#                     total=cart_item.get_total_price()
+#                 )
 
-            # Clear user's cart after successful order creation
-            cart_items.delete()
+#             # Clear user's cart after successful order creation
+#             cart_items.delete()
 
-            # Save order ID in session for payment page
-            request.session['order_id'] = order.id
+#             # Save order ID in session for payment page
+#             request.session['order_id'] = order.id
 
-            messages.success(request, 'Order created successfully!')
-            return redirect('payment_page')  # Redirect to payment page
+#             messages.success(request, 'Order created successfully!')
+#             return redirect('payment_page')  # Redirect to payment page
 
-        except Exception as e:
-            messages.error(request, f'An error occurred: {str(e)}')
-            return redirect('checkout')
+#         except Exception as e:
+#             messages.error(request, f'An error occurred: {str(e)}')
+#             return redirect('checkout')
 
-    # GET request handling
-    cart_items = CartItem.objects.filter(user=request.user)
-    cart_subtotal = sum(item.get_total_price() for item in cart_items)
-    shipping_fee = Decimal('5.00')
-    tax_amount = cart_subtotal * Decimal('0.10')
-    final_total = cart_subtotal + shipping_fee + tax_amount
+#     # GET request handling
+#     cart_items = CartItem.objects.filter(user=request.user)
+#     cart_subtotal = sum(item.get_total_price() for item in cart_items)
+#     shipping_fee = Decimal('5.00')
+#     tax_amount = cart_subtotal * Decimal('0.10')
+#     final_total = cart_subtotal + shipping_fee + tax_amount
 
-    context = {
-        'cart_items': cart_items,
-        'cart_subtotal': cart_subtotal,
-        'shipping_fee': shipping_fee,
-        'tax_amount': tax_amount,
-        'final_total': final_total,
-    }
-    return render(request, 'Store/checkout.html', context)
+#     context = {
+#         'cart_items': cart_items,
+#         'cart_subtotal': cart_subtotal,
+#         'shipping_fee': shipping_fee,
+#         'tax_amount': tax_amount,
+#         'final_total': final_total,
+#     }
+#     return render(request, 'Store/checkout.html', context)
 
 def about_us(request):
     return render(request, 'Store/about_us.html')
@@ -438,14 +463,14 @@ def shop_page(request):
     }
     return render(request, 'Store/shop_page.html', context)
 
-def process_payment(request):
+def checkout(request):
     if request.method == 'POST':
         try:
             # Get cart items and calculate total
             cart_items = CartItem.objects.filter(user=request.user)
             if not cart_items.exists():
                 messages.error(request, 'Your cart is empty')
-                return redirect('payment_page')
+                return redirect('checkout')
 
             subtotal = sum(item.get_total_price() for item in cart_items)
             shipping_fee = Decimal('5.00')
@@ -493,15 +518,18 @@ def process_payment(request):
 
         except Exception as e:
             messages.error(request, f'An error occurred: {str(e)}')
-            return redirect('payment_page')
+            return redirect('checkout')
 
-    return redirect('payment_page')
+    return redirect('checkout')
 
 @login_required
 def view_cart(request):
+    USD_TO_PKR_RATE = 282  # Current conversion rate
     cart_items = CartItem.objects.filter(user=request.user)
-    subtotal = sum(item.get_total_price() for item in cart_items)
-    shipping_fee = Decimal('5.00') if cart_items else Decimal('0.00')
+    
+    # Convert all amounts to PKR
+    subtotal = sum(item.get_total_price() for item in cart_items) * USD_TO_PKR_RATE
+    shipping_fee = (Decimal('5.00') if cart_items else Decimal('0.00')) * USD_TO_PKR_RATE
     tax_amount = subtotal * Decimal('0.10')
     total = subtotal + shipping_fee + tax_amount
     
@@ -512,6 +540,7 @@ def view_cart(request):
         'tax_amount': tax_amount,
         'total': total,
         'cart_count': get_cart_count(request),
+        'USD_TO_PKR_RATE': USD_TO_PKR_RATE,  # Add conversion rate to context
     }
     return render(request, 'Store/view_cart.html', context)
 
@@ -553,3 +582,63 @@ def update_cart(request, cart_item_id, action):
         return JsonResponse({'status': 'error', 'message': 'Cart item not found'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+
+
+# Payment View
+def initiate_payment(request):
+    if request.method == "POST":
+        amount = request.POST.get("amount")
+
+        # JazzCash API Parameters
+        txn_ref_number = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        post_data = {
+            "pp_Version": "1.1",
+            "pp_TxnType": "MWALLET",
+            "pp_Language": "EN",
+            "pp_MerchantID": MERCHANT_ID,
+            "pp_SubMerchantID": "",
+            "pp_Password": PASSWORD,
+            "pp_TxnRefNo": txn_ref_number,
+            "pp_Amount": str(int(float(amount) * 100)),  # Convert amount to paisa
+            "pp_TxnCurrency": "PKR",
+            "pp_TxnDateTime": datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
+            "pp_BillReference": "Payment",
+            "pp_Description": "Leather Store Payment",
+            "pp_ReturnURL": RETURN_URL,
+            "pp_SecureHash": "",  # This will be generated below
+        }
+
+        # Generate Secure Hash
+        post_data["pp_SecureHash"] = generate_secure_hash(post_data)
+
+        # JazzCash Payment URL
+        jazzcash_url = "https://sandbox.jazzcash.com.pk/ApplicationAPI/API/Payment/DoTransaction"
+
+        # Send Request to JazzCash API
+        response = requests.post(jazzcash_url, data=post_data)
+        response_data = response.json()
+
+        if response_data["pp_ResponseCode"] == "000":
+            return redirect(response_data["pp_TxnRefNo"])
+        else:
+            return JsonResponse({"error": response_data["pp_ResponseMessage"]}, status=400)
+
+    return render(request, "store/payment.html")
+
+
+def payment_response(request):
+    if request.method == "POST":
+        response_data = request.POST.dict()
+
+        # Verify Secure Hash
+        received_hash = response_data.pop("pp_SecureHash", None)
+        generated_hash = generate_secure_hash(response_data)
+
+        if received_hash == generated_hash and response_data.get("pp_ResponseCode") == "000":
+            return render(request, "store/payment_success.html", {"data": response_data})
+        else:
+            return render(request, "store/payment_failed.html", {"error": "Transaction Failed!"})
+
+    return redirect("home_page")

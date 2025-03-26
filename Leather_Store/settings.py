@@ -147,6 +147,12 @@ EMAIL_HOST_PASSWORD = 'bbne itui cxyi kbrs'  # Replace with App Password
 
 DEFAULT_FROM_EMAIL = 'Leather Jacket Store <bhattisaab7377@gmail.com>'
 
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+
+
+
+
+
 # Email Configuration for Development
 # APPEND_SLASH = Falsengo.core.mail.backends.console.EmailBackend'
 # JazzCash Configuration
