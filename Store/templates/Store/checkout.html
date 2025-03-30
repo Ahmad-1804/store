@@ -10,38 +10,14 @@
         .checkout-page {
             padding: 40px 0;
             background-color: #f8f9fa;
-            min-height: calc(100vh - 160px);
         }
-        
-/* Footer Styles */
-.footer {
-    background: #2b4162;
-    color: white;
-    padding: 3rem 0;
-    margin-top: 3rem;
-}
-
-.footer a {
-    color: #ffd700;
-    text-decoration: none;
-}
-
-.footer a:hover {
-    color: #ffffff;
-}
-
-.badge {
-    background-color: #ffd700 !important;
-    color: #2b4162 !important;
-}
-        .payment-details {
-            display: none;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-top: 20px;
+        .order-summary img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
         }
+
         /* Navbar Styles */
         .navbar {
             background: linear-gradient(135deg, #2b4162 0%, #12100e 100%) !important;
@@ -71,34 +47,99 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
 
-        .checkout-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 30px;
-            margin-bottom: 20px;
+
+
+        /* Footer Styles */
+        .footer {
+            background: #2b4162;
+            color: white;
+            padding: 3rem 0;
+            margin-top: 3rem;
         }
-        .form-control, .form-select {
-            padding: 12px;
-            border-radius: 8px;
+
+        .footer a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: #ffffff;
+        }
+
+        .badge {
+            background-color: #ffd700 !important;
+            color: #2b4162 !important;
+        }
+        
+        .cart-section {
+            border-left: 1px solid #ddd;
+            padding-left: 30px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        .currency-selector {
+            margin-left: auto;
+            width: 100px;
+        }
+
+        .currency-selector select {
+            background-color: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+        }
+        .currency-selector select option {
+            background-color: #333;
+            color: white;
+        }
+        .nav-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-right: 20px;
+        }
+        .nav-icons i {
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .nav-icons i:hover {
+            color: #ffc107;
+        }
+        .form-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        .checkout-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        .form-label {
+            font-weight: 500;
         }
         .btn-success {
-            padding: 12px;
-            font-weight: 600;
+            padding: 12px 25px;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
-        .cart-summary {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 30px;
+        .order-summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg fixed-top">
+    
+     <!-- Navbar -->
+     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home_page' %}">Leather Jacket Store</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -113,138 +154,107 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login/Register</a></li>
                 </ul>
             </div>
+            <div class="currency-selector">
+                <select class="form-select form-select-sm">
+                    <option value="USD" selected>USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="PKR">PKR</option>
+                </select>
+            </div>
         </div>
     </nav>
 
     <!-- Checkout Section -->
-    <div class="container checkout-page">
+    <div class="container checkout-page mt-4">
         <div class="row">
             <!-- Customer Details -->
-            <div class="col-md-7">
-                <div class="checkout-card">
-                    <h2 class="mb-4"><i class="fas fa-credit-card"></i> Secure Checkout</h2>
-                    <form id="checkoutForm" action="{% url 'process_payment' %}" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="total_amount" value="{{ total }}">
-                        <input type="hidden" name="subtotal" value="{{ subtotal }}">
-                        <input type="hidden" name="shipping_fee" value="{{ shipping_fee }}">
-                        <input type="hidden" name="taxes" value="{{ taxes }}">
-                        
-                        <div class="mb-3">
-                            <label for="fullName" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="fullName" name="full_name" 
-                                pattern="[A-Za-z ]{3,50}" title="Please enter a valid name"
-                                placeholder="Enter your full name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                placeholder="Enter your email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" 
-                                pattern="[0-9]{11}" title="Please enter a valid phone number"
-                                placeholder="Enter your phone number" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Address</label>
-                            <textarea class="form-control" id="address" name="address" 
-                                rows="3" placeholder="Enter your shipping address" 
-                                minlength="10" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="paymentMethod" class="form-label">Payment Method</label>
-                            <select class="form-select" id="paymentMethod" name="payment_method" required>
-                                <option value="" disabled selected>Select Payment Method</option>
-                                <option value="easypaisa">Easypaisa</option>
-                                <option value="jazzcash">JazzCash</option>
-                                <option value="paypal">PayPal</option>
-                                <option value="pakpay">PakPay</option>
-                                <option value="credit_card">Credit/Debit Card</option>
-                                <option value="cod">Cash on Delivery</option>
-                            </select>
-                        </div>
-
-                        <!-- Payment Details -->
-                        <div id="paymentDetails" class="payment-details">
-                            <!-- Easypaisa and JazzCash -->
-                            <div id="phonePayment" class="d-none">
-                                <label for="phoneNumber" class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" id="phoneNumber" name="phone_number" placeholder="Enter your phone number">
-                            </div>
-
-                            <!-- PayPal and PakPay -->
-                            <div id="emailPayment" class="d-none">
-                                <label for="paymentEmail" class="form-label">Email for Payment</label>
-                                <input type="email" class="form-control" id="paymentEmail" name="payment_email" placeholder="Enter your PayPal/PakPay email">
-                            </div>
-
-                            <!-- Credit/Debit Card -->
-                            <div id="cardPayment" class="d-none">
-                                <label for="cardNumber" class="form-label">Card Number</label>
-                                <input type="text" class="form-control" id="cardNumber" name="card_number" placeholder="Enter your card number">
-                                <label for="cardExpiry" class="form-label mt-2">Expiry Date</label>
-                                <input type="text" class="form-control" id="cardExpiry" name="card_expiry" placeholder="MM/YY">
-                                <label for="cardCVC" class="form-label mt-2">CVC</label>
-                                <input type="text" class="form-control" id="cardCVC" name="card_cvc" placeholder="CVC">
-                            </div>
-                        </div>
-
-                        <!-- Confirm Order Button -->
-                        <button type="submit" class="btn btn-success w-100 mt-3">Confirm Order</button>
-                    </form>
-                </div>
+            <div class="col-md-6 form-container">
+                <h1 class="checkout-title">Checkout</h1>
+                <form id="checkoutForm" action="{% url 'checkout' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="fullName" name="full_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="country" class="form-label">Country</label>
+                        <select class="form-select" id="country" name="country" required>
+                            <option value="">Select Country</option>
+                            <option value="USA">USA</option>
+                            <option value="Canada">Canada</option>
+                            <option value="UK">UK</option>
+                            <option value="Pakistan">Pakistan</option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="cart_total" id="cart_total_input" value="{{ final_total }}">
+                    <button type="submit" class="btn btn-success w-100">CONTINUE TO PAYMENT</button>
+                </form>
             </div>
 
-            <!-- Cart Summary -->
-            <div class="col-md-5">
-                <div class="cart-summary">
-                    <h4 class="mb-4"><i class="fas fa-shopping-basket"></i> Order Summary</h4>
+            <!-- Cart Summary Section -->
+            <div class="col-md-6 cart-section">
+                <h4 class="mb-4">Cart Summary</h4>
+                <div id="cartItemsList" class="mb-4">
                     {% if cart_items %}
-                    <ul class="list-group mb-3">
                         {% for item in cart_items %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
-                                <div>
-                                    <h6 class="mb-0">{{ item.name }}</h6>
-                                    <small class="text-muted">Quantity: {{ item.quantity }}</small>
+                        <div class="card mb-3">
+                            <div class="card-body d-flex align-items-center">
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                     class="me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-1">{{ item.product.name }}</h6>
+                                    <p class="mb-0 text-muted">Quantity: {{ item.quantity }}</p>
+                                    <p class="mb-0">Price: ${{ item.price }}</p>
+                                    <p class="mb-0">Total: ${{ item.get_total_price }}</p>
                                 </div>
                             </div>
-                            <span class="badge bg-primary rounded-pill">${{ item.total_price }}</span>
-                        </li>
+                        </div>
                         {% endfor %}
-                    </ul>
-
-                    <div class="border-top pt-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal:</span>
-                            <span>${{ subtotal }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Shipping:</span>
-                            <span>${{ shipping_fee }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Tax:</span>
-                            <span>${{ taxes }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mt-3 pt-3 border-top">
-                            <strong>Total:</strong>
-                            <strong class="text-success">${{ total }}</strong>
-                        </div>
-                    </div>
                     {% else %}
-                    <p class="text-center text-muted">Your cart is empty</p>
+                        <div class="alert alert-info">Your cart is empty.</div>
                     {% endif %}
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h5 class="mb-3">Order Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>${{ cart_subtotal|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping Fee:</span>
+                        <span>${{ shipping_fee|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax (10%):</span>
+                        <span>${{ tax_amount|floatformat:2 }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total:</span>
+                        <span>${{ final_total|floatformat:2 }}</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-     <!-- Footer -->
-     <footer class="footer">
+    <!-- Footer -->
+    <footer class="footer">
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
@@ -276,33 +286,240 @@
         </div>
     </footer>
 
+    <!-- Bootstrap JavaScript Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('paymentMethod').addEventListener('change', function () {
-            const paymentType = this.value;
-            const paymentDetails = document.getElementById('paymentDetails');
-            const phonePayment = document.getElementById('phonePayment');
-            const emailPayment = document.getElementById('emailPayment');
-            const cardPayment = document.getElementById('cardPayment');
+        document.addEventListener("DOMContentLoaded", () => {
+            // Initialize cart from Django context
+            const cartItems = {% if cart_items %}{{ cart_items|safe }}{% else %}[]{% endif %};
+            
+            function updateCartDisplay() {
+                const cartList = document.getElementById('cartItemsList');
+                
+                if (!cartItems || cartItems.length === 0) {
+                    cartList.innerHTML = '<div class="alert alert-info">Your cart is empty.</div>';
+                    return;
+                }
 
-            // Reset all payment detail sections
-            paymentDetails.style.display = 'none';
-            phonePayment.classList.add('d-none');
-            emailPayment.classList.add('d-none');
-            cardPayment.classList.add('d-none');
-
-            // Display relevant section based on payment method
-            if (paymentType === 'easypaisa' || paymentType === 'jazzcash') {
-                paymentDetails.style.display = 'block';
-                phonePayment.classList.remove('d-none');
-            } else if (paymentType === 'paypal' || paymentType === 'pakpay') {
-                paymentDetails.style.display = 'block';
-                emailPayment.classList.remove('d-none');
-            } else if (paymentType === 'credit_card') {
-                paymentDetails.style.display = 'block';
-                cardPayment.classList.remove('d-none');
+                cartList.innerHTML = '';
+                cartItems.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'card mb-3';
+                    itemElement.setAttribute('data-item-id', item.id);
+                    itemElement.innerHTML = `
+                        <div class="card-body d-flex align-items-center">
+                            <img src="${item.product.image}" alt="${item.product.name}" 
+                                 class="me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-1">${item.product.name}</h6>
+                                <div class="quantity-controls d-flex align-items-center mb-2">
+                                    <button class="btn btn-sm btn-outline-secondary me-2" 
+                                            onclick="updateItemQuantity(${item.id}, 'decrease')">-</button>
+                                    <input type="number" class="form-control form-control-sm quantity-input" 
+                                           style="width: 60px" value="${item.quantity}" min="1"
+                                           onchange="updateItemQuantity(${item.id}, 'set', this.value)">
+                                    <button class="btn btn-sm btn-outline-secondary ms-2" 
+                                            onclick="updateItemQuantity(${item.id}, 'increase')">+</button>
+                                </div>
+                                <p class="mb-0">Price: $${item.price}</p>
+                                <p class="mb-0 item-total">Total: $${(item.price * item.quantity).toFixed(2)}</p>
+                            </div>
+                            <button class="btn btn-sm btn-danger ms-3" onclick="removeItem(${item.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    cartList.appendChild(itemElement);
+                });
             }
+
+            function updateItemQuantity(itemId, action, value) {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                let formData = new FormData();
+                formData.append('item_id', itemId);
+                formData.append('action', action);
+                if (value) formData.append('value', value);
+
+                fetch('/update-cart-item/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the item quantity in the local array
+                        const item = cartItems.find(i => i.id === itemId);
+                        if (item) {
+                            item.quantity = data.quantity;
+                        }
+                        
+                        // Update the display
+                        updateCartDisplay();
+                        
+                        // Update order summary
+                        document.querySelector('[data-subtotal]').textContent = `$${data.subtotal.toFixed(2)}`;
+                        document.querySelector('[data-tax]').textContent = `$${data.tax.toFixed(2)}`;
+                        document.querySelector('[data-total]').textContent = `$${data.total.toFixed(2)}`;
+                        
+                        // Update hidden input for checkout
+                        document.getElementById('cart_total_input').value = data.total;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            function removeItem(itemId) {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch('/remove-cart-item/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ item_id: itemId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove item from local array
+                        const index = cartItems.findIndex(i => i.id === itemId);
+                        if (index > -1) {
+                            cartItems.splice(index, 1);
+                        }
+                        
+                        // Update the display
+                        updateCartDisplay();
+                        
+                        // Update order summary
+                        document.querySelector('[data-subtotal]').textContent = `$${data.subtotal.toFixed(2)}`;
+                        document.querySelector('[data-tax]').textContent = `$${data.tax.toFixed(2)}`;
+                        document.querySelector('[data-total]').textContent = `$${data.total.toFixed(2)}`;
+                        
+                        // Update hidden input for checkout
+                        document.getElementById('cart_total_input').value = data.total;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            // Initialize cart display
+            updateCartDisplay();
         });
     </script>
+    <script>
+    function updateQuantity(itemId, action) {
+        fetch('/update-cart-item/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `item_id=${itemId}&action=${action}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            if (data.removed) {
+                // Remove the item from DOM
+                const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+                itemElement.remove();
+                
+                // Check if cart is empty
+                if (document.querySelectorAll('.cart-item').length === 0) {
+                    document.getElementById('cartItemsList').innerHTML = 
+                        '<li class="list-group-item text-center">Your cart is empty.</li>';
+                }
+            } else {
+                // Update quantity and totals
+                const quantityInput = document.querySelector(`[data-item-id="${itemId}"] .quantity-input`);
+                quantityInput.value = data.quantity;
+                
+                // Update item total
+                const itemTotal = document.querySelector(`[data-item-id="${itemId}"] .item-total`);
+                itemTotal.textContent = data.item_total.toFixed(2);
+            }
+            
+            // Update summary totals
+            document.getElementById('subtotal').textContent = data.subtotal.toFixed(2);
+            document.getElementById('taxes').textContent = data.taxes.toFixed(2);
+            document.getElementById('total').textContent = data.total.toFixed(2);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the cart.');
+        });
+    }
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('checkoutForm');
+        const totalElement = document.querySelector('.order-summary .fw-bold span:last-child');
+        
+        if (form && totalElement) {
+            const totalAmount = totalElement.textContent.replace('$', '');
+            document.getElementById('cart_total_input').value = totalAmount;
+        }
+        
+        form.addEventListener('submit', function(e) {
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const country = document.getElementById('country').value;
+
+            if (!fullName || !email || !address || !country) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+                return;
+            }
+        });
+    });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkoutForm');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fullName = document.getElementById('fullName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const address = document.getElementById('address').value.trim();
+        const country = document.getElementById('country').value;
+
+        if (!fullName || !email || !address || !country) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        // If validation passes, submit the form
+        form.submit();
+    });
+});
+</script>
 </body>
 </html>

@@ -278,73 +278,155 @@ def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     return render(request, 'Store/product_details.html', {'product': product})
 
-# def checkout(request):
-#     if request.method == 'POST':
-#         try:
-#             # Get cart items and verify cart is not empty
-#             cart_items = CartItem.objects.filter(user=request.user)
-#             if not cart_items.exists():
-#                 messages.error(request, 'Your cart is empty')
-#                 return redirect('view_cart')
+@login_required
+def checkout(request):
+    cart_items = CartItem.objects.filter(user=request.user)
+    if not cart_items.exists():
+        messages.error(request, 'Your cart is empty')
+        return redirect('view_cart')
 
-#             # Calculate totals
-#             subtotal = sum(item.get_total_price() for item in cart_items)
-#             shipping_fee = Decimal('5.00')
-#             tax_amount = subtotal * Decimal('0.10')
-#             total_amount = subtotal + shipping_fee + tax_amount
+    # Calculate totals
+    cart_subtotal = sum(item.get_total_price() for item in cart_items)
+    shipping_fee = Decimal('5.00')
+    tax_amount = cart_subtotal * Decimal('0.10')
+    final_total = cart_subtotal + shipping_fee + tax_amount
 
-#             # Create the order with all required fields
-#             order = Order.objects.create(
-#                 user=request.user,
-#                 full_name=request.POST.get('full_name'),
-#                 email=request.POST.get('email'),
-#                 address=request.POST.get('address'),
-#                 country=request.POST.get('country'),
-#                 total_amount=total_amount,
-#                 shipping_fee=shipping_fee,
-#                 tax_amount=tax_amount,
-#                 subtotal=subtotal,
-#                 status='pending'
-#             )
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        address = request.POST.get('address')
+        country = request.POST.get('country')
 
-#             # Create order items
-#             for cart_item in cart_items:
-#                 OrderItem.objects.create(
-#                     order=order,
-#                     product=cart_item.product,
-#                     quantity=cart_item.quantity,
-#                     price=cart_item.price,
-#                     total=cart_item.get_total_price()
-#                 )
+        if not all([full_name, email, address, country]):
+            messages.error(request, "All fields are required.")
+            return redirect('checkout')
 
-#             # Clear user's cart after successful order creation
-#             cart_items.delete()
+        # Create the order
+        order = Order.objects.create(
+            user=request.user,
+            full_name=full_name,
+            email=email,
+            phone=phone,
+            address=address,
+            country=country,
+            subtotal=cart_subtotal,
+            shipping_fee=shipping_fee,
+            tax_amount=tax_amount,
+            total_amount=final_total,
+            status='pending'
+        )
 
-#             # Save order ID in session for payment page
-#             request.session['order_id'] = order.id
+        # Create order items
+        for cart_item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=cart_item.product,
+                quantity=cart_item.quantity,
+                price=cart_item.price
+            )
 
-#             messages.success(request, 'Order created successfully!')
-#             return redirect('payment_page')  # Redirect to payment page
+        # Store order ID in session
+        request.session['order_id'] = order.id
+        
+        # Redirect to payment page
+        return redirect('payment_process')
 
-#         except Exception as e:
-#             messages.error(request, f'An error occurred: {str(e)}')
-#             return redirect('checkout')
+    context = {
+        'cart_items': cart_items,
+        'cart_subtotal': cart_subtotal,
+        'shipping_fee': shipping_fee,
+        'tax_amount': tax_amount,
+        'final_total': final_total,
+    }
+    return render(request, 'Store/checkout.html', context)
 
-#     # GET request handling
-#     cart_items = CartItem.objects.filter(user=request.user)
-#     cart_subtotal = sum(item.get_total_price() for item in cart_items)
-#     shipping_fee = Decimal('5.00')
-#     tax_amount = cart_subtotal * Decimal('0.10')
-#     final_total = cart_subtotal + shipping_fee + tax_amount
+@login_required
+def payment_process(request):
+    order_id = request.session.get('order_id')
+    if not order_id:
+        return redirect('view_cart')
+    
+    order = get_object_or_404(Order, id=order_id)
+    cart_items = OrderItem.objects.filter(order=order)
 
-#     context = {
-#         'cart_items': cart_items,
-#         'cart_subtotal': cart_subtotal,
-#         'shipping_fee': shipping_fee,
-#         'tax_amount': tax_amount,
-#         'final_total': final_total,
-#     }
-#     return render(request, 'Store/checkout.html', context)
+    if request.method == 'POST':
+        payment_method = request.POST.get('payment_method')
+        if not payment_method:
+            messages.error(request, 'Please select a payment method')
+            return redirect('payment_process')
+
+        # Update order with payment method
+        order.payment_method = payment_method
+        order.status = 'confirmed'
+        order.save()
+
+        # Send order confirmation email
+        order_items_text = "\n".join([
+            f"- {item.product.name} x {item.quantity}: ${item.price * item.quantity}"
+            for item in cart_items
+        ])
+        
+        email_subject = f'Order Confirmation - Order #{order.id}'
+        email_message = f"""
+Dear {order.full_name},
+
+Thank you for your order! Your order has been successfully placed.
+
+Order Details:
+Order ID: {order.id}
+
+Items:
+{order_items_text}
+
+Subtotal: ${order.subtotal}
+Shipping: ${order.shipping_fee}
+Tax: ${order.tax_amount}
+Total: ${order.total_amount}
+
+Shipping Address:
+{order.address}
+{order.country}
+
+We will process your order soon. You will receive another email when your order ships.
+
+Best regards,
+Leather Jacket Store Team
+"""
+        
+        send_mail(
+            email_subject,
+            email_message,
+            settings.EMAIL_HOST_USER,
+            [order.email],
+            fail_silently=False,
+        )
+
+        # Clear the cart
+        CartItem.objects.filter(user=request.user).delete()
+        
+        # Clear the order ID from session
+        if 'order_id' in request.session:
+            del request.session['order_id']
+
+        return redirect('order_success', order_id=order.id)
+
+    context = {
+        'order': order,
+        'cart_items': cart_items,
+    }
+    return render(request, 'Store/payment.html', context)
+
+@login_required
+def order_success(request, order_id):
+    """
+    Display the order success page with the order details
+    """
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    context = {
+        'order': order
+    }
+    return render(request, 'Store/order_success.html', context)
 
 def about_us(request):
     return render(request, 'Store/about_us.html')
@@ -463,73 +545,15 @@ def shop_page(request):
     }
     return render(request, 'Store/shop_page.html', context)
 
-def checkout(request):
-    if request.method == 'POST':
-        try:
-            # Get cart items and calculate total
-            cart_items = CartItem.objects.filter(user=request.user)
-            if not cart_items.exists():
-                messages.error(request, 'Your cart is empty')
-                return redirect('checkout')
 
-            subtotal = sum(item.get_total_price() for item in cart_items)
-            shipping_fee = Decimal('5.00')
-            tax_amount = subtotal * Decimal('0.10')
-            total_amount = subtotal + shipping_fee + tax_amount
-
-            # Create order
-            order = Order.objects.create(
-                user=request.user,
-                customer_name=request.POST.get('full_name'),
-                email=request.POST.get('email'),
-                phone=request.POST.get('phone'),
-                address=request.POST.get('address'),
-                payment_method=request.POST.get('payment_method'),
-                total_amount=total_amount,
-                status='completed'  # Update status to completed
-            )
-
-            # Create order items
-            for cart_item in cart_items:
-                OrderItem.objects.create(
-                    order=order,
-                    product=cart_item.product,
-                    quantity=cart_item.quantity,
-                    price=cart_item.price
-                )
-
-            # Clear user's cart
-            cart_items.delete()
-
-            # Send confirmation email
-            try:
-                send_mail(
-                    'Order Confirmation - Leather Store',
-                    f'Thank you for your order! Your order ID is {order.id}.',
-                    settings.EMAIL_HOST_USER,
-                    [order.email],
-                    fail_silently=True,
-                )
-            except Exception as e:
-                # Log email error but don't stop the order process
-                print(f"Email error: {str(e)}")
-
-            return redirect('order_success', order_id=order.id)
-
-        except Exception as e:
-            messages.error(request, f'An error occurred: {str(e)}')
-            return redirect('checkout')
-
-    return redirect('checkout')
 
 @login_required
 def view_cart(request):
-    USD_TO_PKR_RATE = 282  # Current conversion rate
     cart_items = CartItem.objects.filter(user=request.user)
     
-    # Convert all amounts to PKR
-    subtotal = sum(item.get_total_price() for item in cart_items) * USD_TO_PKR_RATE
-    shipping_fee = (Decimal('5.00') if cart_items else Decimal('0.00')) * USD_TO_PKR_RATE
+    # Calculate totals in USD directly
+    subtotal = sum(item.get_total_price() for item in cart_items)
+    shipping_fee = Decimal('5.00') if cart_items else Decimal('0.00')
     tax_amount = subtotal * Decimal('0.10')
     total = subtotal + shipping_fee + tax_amount
     
@@ -540,7 +564,6 @@ def view_cart(request):
         'tax_amount': tax_amount,
         'total': total,
         'cart_count': get_cart_count(request),
-        'USD_TO_PKR_RATE': USD_TO_PKR_RATE,  # Add conversion rate to context
     }
     return render(request, 'Store/view_cart.html', context)
 
@@ -584,61 +607,3 @@ def update_cart(request, cart_item_id, action):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-
-
-# Payment View
-def initiate_payment(request):
-    if request.method == "POST":
-        amount = request.POST.get("amount")
-
-        # JazzCash API Parameters
-        txn_ref_number = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        post_data = {
-            "pp_Version": "1.1",
-            "pp_TxnType": "MWALLET",
-            "pp_Language": "EN",
-            "pp_MerchantID": MERCHANT_ID,
-            "pp_SubMerchantID": "",
-            "pp_Password": PASSWORD,
-            "pp_TxnRefNo": txn_ref_number,
-            "pp_Amount": str(int(float(amount) * 100)),  # Convert amount to paisa
-            "pp_TxnCurrency": "PKR",
-            "pp_TxnDateTime": datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
-            "pp_BillReference": "Payment",
-            "pp_Description": "Leather Store Payment",
-            "pp_ReturnURL": RETURN_URL,
-            "pp_SecureHash": "",  # This will be generated below
-        }
-
-        # Generate Secure Hash
-        post_data["pp_SecureHash"] = generate_secure_hash(post_data)
-
-        # JazzCash Payment URL
-        jazzcash_url = "https://sandbox.jazzcash.com.pk/ApplicationAPI/API/Payment/DoTransaction"
-
-        # Send Request to JazzCash API
-        response = requests.post(jazzcash_url, data=post_data)
-        response_data = response.json()
-
-        if response_data["pp_ResponseCode"] == "000":
-            return redirect(response_data["pp_TxnRefNo"])
-        else:
-            return JsonResponse({"error": response_data["pp_ResponseMessage"]}, status=400)
-
-    return render(request, "store/payment.html")
-
-
-def payment_response(request):
-    if request.method == "POST":
-        response_data = request.POST.dict()
-
-        # Verify Secure Hash
-        received_hash = response_data.pop("pp_SecureHash", None)
-        generated_hash = generate_secure_hash(response_data)
-
-        if received_hash == generated_hash and response_data.get("pp_ResponseCode") == "000":
-            return render(request, "store/payment_success.html", {"data": response_data})
-        else:
-            return render(request, "store/payment_failed.html", {"error": "Transaction Failed!"})
-
-    return redirect("home_page")

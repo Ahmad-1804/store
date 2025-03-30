@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+from django.core.validators import MinValueValidator
 
 
 
@@ -87,18 +88,87 @@ class CustomerDetails(models.Model):
         return f"Order for {self.full_name}"
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    customer_name = models.CharField(max_length=100)
+    PAYMENT_CHOICES = [
+        ('cash', 'Cash on Delivery'),
+        ('card', 'Credit/Debit Card'),
+        ('jazzcash', 'JazzCash'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    PAYMENT_METHODS = [
+        ('jazzcash', 'JazzCash'),
+        ('easypaisa', 'Easypaisa'),
+        ('paypal', 'PayPal'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=100)
     email = models.EmailField()
-    phone = models.CharField(max_length=15)
+    phone = models.CharField(max_length=15, null=True, blank=True)
     address = models.TextField()
-    payment_method = models.CharField(max_length=50)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    country = models.CharField(max_length=100)
+    total_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    shipping_fee = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    tax_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    subtotal = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, default='pending')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        try:
+            # Convert string values to Decimal safely
+            if self.total_amount:
+                self.total_amount = Decimal(str(self.total_amount))
+            if self.shipping_fee:
+                self.shipping_fee = Decimal(str(self.shipping_fee))
+            if self.tax_amount:
+                self.tax_amount = Decimal(str(self.tax_amount))
+            if self.subtotal:
+                self.subtotal = Decimal(str(self.subtotal))
+        except (InvalidOperation, TypeError):
+            # Handle invalid decimal values
+            if not self.total_amount:
+                self.total_amount = Decimal('0.00')
+            if not self.shipping_fee:
+                self.shipping_fee = Decimal('0.00')
+            if not self.tax_amount:
+                self.tax_amount = Decimal('0.00')
+            if not self.subtotal:
+                self.subtotal = Decimal('0.00')
+        
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Order {self.id} by {self.customer_name}"
+        return f"Order #{self.id} by {self.full_name}"
+
+    @property
+    def customer_name(self):
+        return self.full_name
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)

@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Product, Cart, CartItem, CustomerDetails, Order, OrderItem
+from django.db.models import DecimalField
+from django.forms import TextInput
+from .models import Product, Cart, CartItem, CustomerDetails, Order, OrderItem, Profile
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -25,11 +31,26 @@ class CustomerDetailsAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('customer_name', 'email', 'payment_method', 'total_amount', 'created_at')
-    list_filter = ('payment_method', 'created_at')
-    search_fields = ('customer_name', 'email')
+    list_display = ['id', 'full_name', 'phone', 'payment_method', 'get_total_amount', 'status', 'created_at']
+    list_filter = ['status', 'payment_method', 'created_at']
+    search_fields = ['full_name', 'email', 'phone', 'id']
+    inlines = [OrderItemInline]
+    readonly_fields = ['created_at', 'updated_at']
+    
+    formfield_overrides = {
+        DecimalField: {'widget': TextInput()},
+    }
+
+    def get_total_amount(self, obj):
+        try:
+            return round(float(obj.total_amount), 2) if obj.total_amount else 0.00
+        except (ValueError, TypeError):
+            return 0.00
+    get_total_amount.short_description = 'Total Amount'
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('order', 'product', 'quantity', 'price')
     list_filter = ('order',)
+
+admin.site.register(Profile)

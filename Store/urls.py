@@ -7,6 +7,8 @@ urlpatterns = [
     path('product/<int:id>/', views.product_detail, name='product_detail'),
     path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
     path('cart/', views.view_cart, name='view_cart'),
+    path('checkout/', views.checkout, name='checkout'),
+    path('payment/', views.payment_process, name='payment_process'),  # Uncomment this line
     path('update-cart/<int:cart_item_id>/<str:action>/', views.update_cart, name='update_cart'),  
     path('about/', views.about_us, name='about_us'),
     path('send-contact-email/', views.send_contact_email, name='send_contact_email'),
@@ -21,7 +23,4 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
     path('password-reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
     path('verify/', views.verify_email, name='verify_email'),
-    path("payment/", views.initiate_payment, name="initiate_payment"),
-    path("payment-response/", views.payment_response, name="payment_response"),
-    path('checkout/', views.checkout, name= 'checkout')
 ]
