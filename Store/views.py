@@ -422,11 +422,18 @@ def order_success(request, order_id):
     """
     Display the order success page with the order details
     """
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    context = {
-        'order': order
-    }
-    return render(request, 'Store/order_success.html', context)
+    try:
+        order = Order.objects.get(id=order_id, user=request.user)
+        # Change orderitem_set to OrderItem.objects.filter()
+        order_items = OrderItem.objects.filter(order=order)
+        context = {
+            'order': order,
+            'order_items': order_items
+        }
+        return render(request, 'Store/order_success.html', context)
+    except Order.DoesNotExist:
+        messages.error(request, 'Order not found.')
+        return redirect('home_page')
 
 def about_us(request):
     return render(request, 'Store/about_us.html')
@@ -511,17 +518,6 @@ def send_contact_email(request):
             messages.error(request, 'Failed to send message. Please try again later.')
             
     return redirect('about_us')
-
-@login_required
-def order_success(request, order_id):
-    """
-    Display the order success page with the order ID
-    """
-    context = {
-        'order_id': order_id
-    }
-    return render(request, 'Store/order_success.html', context)
-
 
 
 def logout_view(request):

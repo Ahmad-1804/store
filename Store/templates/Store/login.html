@@ -14,7 +14,7 @@
             <div class="card-body">
                 <h1 class="card-title text-center mb-4">Login</h1>
 
-                <form method="post">
+                <form method="post" action="{% url 'login' %}">
                     {% csrf_token %}
                     
                     <!-- Username Input -->
