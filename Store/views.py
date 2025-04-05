@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Case, When, DecimalField  # Add Case, When, and DecimalField
 from decimal import Decimal
 from .models import *
 from django.core.mail import send_mail
@@ -127,7 +127,7 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        print(f"trying to login: {username} and this is a {password}")
+        # print(f"trying to login: {username} and this is a {password}")
         
         try:
             user = User.objects.get(username=username)  # Find user by email
@@ -206,16 +206,26 @@ def password_reset_confirm(request, uidb64, token):
 
 
 def home_page(request):
+    def get_products_with_discount(category):
+        products = Product.objects.filter(category=category)
+        return products.annotate(
+            final_price=Case(
+                When(discount_price__isnull=False, then='discount_price'),
+                default='price',
+                output_field=DecimalField()
+            )
+        )
+
     context = {
-        'men_products': Product.objects.filter(category='Men Jackets'),
-        'women_products': Product.objects.filter(category='Women Jackets'),
-        'kids_products': Product.objects.filter(category='Kids Jackets'),
-        'men_shorts': Product.objects.filter(category='Men Shorts'),
-        'women_shorts': Product.objects.filter(category='Women Shorts'),
-        'men_caps': Product.objects.filter(category='Men Caps'),
-        'men_purse': Product.objects.filter(category='Men Purse'),
-        'women_purse': Product.objects.filter(category='Women Purse'),
-        'watch_straps': Product.objects.filter(category='Watch Straps'),
+        'men_products': get_products_with_discount('Men Jackets'),
+        'women_products': get_products_with_discount('Women Jackets'),
+        'kids_products': get_products_with_discount('Kids Jackets'),
+        'men_shorts': get_products_with_discount('Men Shorts'),
+        'women_shorts': get_products_with_discount('Women Shorts'),
+        'men_caps': get_products_with_discount('Men Caps'),
+        'men_purse': get_products_with_discount('Men Purse'),
+        'women_purse': get_products_with_discount('Women Purse'),
+        'watch_straps': get_products_with_discount('Watch Straps'),
     }
     return render(request, 'Store/home_page.html', context)
 
@@ -529,14 +539,22 @@ def logout_view(request):
     return HttpResponseRedirect(reverse('login'))
 
 def shop_page(request):
+    def get_products_with_discount(category_filter):
+        products = Product.objects.filter(category__in=category_filter if isinstance(category_filter, list) else [category_filter])
+        return products.annotate(
+            final_price=Case(
+                When(discount_price__isnull=False, then='discount_price'),
+                default='price',
+                output_field=DecimalField()
+            )
+        )
+
     context = {
-        'mens_jackets': Product.objects.filter(category='Men Jackets'),
-        'womens_jackets': Product.objects.filter(category='Women Jackets'),
-        'kids_jackets': Product.objects.filter(category='Kids Jackets'),
-        'shorts': Product.objects.filter(category__in=['Men Shorts', 'Women Shorts']),
-        'accessories': Product.objects.filter(
-            category__in=['Men Caps', 'Men Purse', 'Women Purse', 'Watch Straps']
-        ),
+        'mens_jackets': get_products_with_discount('Men Jackets'),
+        'womens_jackets': get_products_with_discount('Women Jackets'),
+        'kids_jackets': get_products_with_discount('Kids Jackets'),
+        'shorts': get_products_with_discount(['Men Shorts', 'Women Shorts']),
+        'accessories': get_products_with_discount(['Men Caps', 'Men Purse', 'Women Purse', 'Watch Straps']),
         'cart_count': get_cart_count(request),
     }
     return render(request, 'Store/shop_page.html', context)

@@ -1178,6 +1178,39 @@
 
 <!-- Sidebar Dropdown Script -->
 <script>
+
+    // USD to PKR conversion rate
+    const USD_TO_PKR_RATE = 282;
+
+    // Convert USD to PKR with error handling
+    function convertToPKR(usdPrice) {
+        try {
+            const price = parseFloat(usdPrice);
+            if (isNaN(price)) {
+                throw new Error('Invalid price format');
+            }
+            const pkrPrice = Math.round(price * USD_TO_PKR_RATE);
+            return `PKR ${pkrPrice.toLocaleString()}`;
+        } catch (error) {
+            console.error('Price conversion error:', error);
+            return `Price unavailable`;
+        }
+    }
+
+    // Update prices on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-price]').forEach(element => {
+            const usdPrice = element.getAttribute('data-price');
+            element.textContent = convertToPKR(usdPrice);
+        });
+
+        // Initialize tooltips if using Bootstrap tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         initializeSidebar();
     });
