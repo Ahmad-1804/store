@@ -23,8 +23,9 @@ from django.urls import reverse
 import hashlib
 import datetime
 import requests
-
-
+from django.views.decorators.http import require_GET
+from django.contrib.auth import get_user_model
+from django.db.models import Sum
 
 
 
@@ -50,8 +51,23 @@ def get_cart_count(request):
         return CartItem.objects.filter(user=request.user).count()
     return 0
 
-def admin_dashboard(request):
-    return render(request, 'Store/admin_dashboard.html')
+
+
+def admin_dashboard_view(request):
+    User = get_user_model()
+    total_orders = Order.objects.count()
+    total_users = User.objects.count()
+    total_revenue = Order.objects.filter(status='Completed').aggregate(total=Sum('total_amount'))['total'] or 0
+
+    recent_orders = Order.objects.all().order_by('id')  # This will sort in ascending order
+
+    context = {
+        'total_orders': total_orders,
+        'total_users': total_users,
+        'total_revenue': total_revenue,
+        'recent_orders': recent_orders,
+    }
+    return render(request, 'store/admin-dashboard.html', context)
  
 def register_page(request):
     if request.method == 'POST':

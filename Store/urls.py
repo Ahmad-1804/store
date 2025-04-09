@@ -23,4 +23,6 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
     path('password-reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
     path('verify/', views.verify_email, name='verify_email'),
+    path('admin-dashboard/', views.admin_dashboard_view, name='admin_dashboard_view'),
+    # path('api/admin/dashboard-data/', views.admin_dashboard_data, name='admin_dashboard_data'),
 ]
